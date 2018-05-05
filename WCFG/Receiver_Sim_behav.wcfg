@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="Receiver_Sim_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="Receiver_Sim" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="3000000001fs"></ZoomEndTime>
+      <Cursor1Time time="3000000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="79"></NameColumnWidth>
+      <ValueColumnWidth column_width="58"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="7" />
+   <wvobject fp_name="/Receiver_Sim/clock" type="logic">
+      <obj_property name="ElementShortName">clock</obj_property>
+      <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject fp_name="/Receiver_Sim/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/Receiver_Sim/receive" type="logic">
+      <obj_property name="ElementShortName">receive</obj_property>
+      <obj_property name="ObjectShortName">receive</obj_property>
+   </wvobject>
+   <wvobject fp_name="/Receiver_Sim/sTick" type="logic">
+      <obj_property name="ElementShortName">sTick</obj_property>
+      <obj_property name="ObjectShortName">sTick</obj_property>
+   </wvobject>
+   <wvobject fp_name="/Receiver_Sim/rxDoneTick" type="logic">
+      <obj_property name="ElementShortName">rxDoneTick</obj_property>
+      <obj_property name="ObjectShortName">rxDoneTick</obj_property>
+   </wvobject>
+   <wvobject fp_name="/Receiver_Sim/dataOut" type="array">
+      <obj_property name="ElementShortName">dataOut[7:0]</obj_property>
+      <obj_property name="ObjectShortName">dataOut[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/Receiver_Sim/stateOut" type="array">
+      <obj_property name="ElementShortName">stateOut[1:0]</obj_property>
+      <obj_property name="ObjectShortName">stateOut[1:0]</obj_property>
+   </wvobject>
+</wave_config>
