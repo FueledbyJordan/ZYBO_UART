@@ -6,6 +6,11 @@ use IEEE.NUMERIC_STD.ALL;
 entity Microcontroller is
     Port(
         clk : in std_logic;
+        sc_enable : in std_logic;
+        DMA_mem_address_in : in std_logic_vector(7 downto 0);
+        DMA_mem_rw : in std_logic;
+        DMA_mem_data_in : in std_logic_vector(7 downto 0);
+        DMA_mem_data_out : out std_logic_vector(7 downto 0);
         sbus : out std_logic_vector(7 downto 0);
         dbus : out std_logic_vector(7 downto 0);
         aluout : out std_logic_vector(7 downto 0);
@@ -98,13 +103,19 @@ component MEMORY is
         datain : in std_logic_vector(7 downto 0);
         readwrite : in std_logic;-- := '0';   --read is 1, write is 0
         clk : in std_logic := '0';
-        rst : in std_logic := '0'
+        rst : in std_logic := '0';
+        DMA_enable : in std_logic;
+        DMA_rw : in std_logic;
+        DMA_address : in std_logic_vector(7 downto 0);
+        DMA_data_in : in std_logic_vector(7 downto 0);
+        DMA_data_out : out std_logic_vector(7 downto 0)
+
     );
 END COMPONENT;
 
 component Stage_Count is
   Port ( 
-  clk, rst: in std_logic;
+  clk, rst, enable: in std_logic;
   stage:    out std_logic_vector(1 downto 0):= "00"
   );
 end component;
@@ -153,8 +164,8 @@ PCBlock: PC port map(Immed_in=>imline,clk=>clk,pcsel=>pcselline,pcload=>pcloadli
 ALUBlock: ALU port map(A=>dbusline,B=>sbusline,aluop=>aluopline,result=>aluoutbus);
 IR_reg_block: IR_reg port map(IR_in=>datainbus,IR_out=>irline,clk=>clk,enable=>irloadline);
 Immed_reg_block: Immed_reg port map(Immed_in=>datainbus,Immed_out=>imline,clk=>clk,enable=>imloadline);
-MemoryBlock: MEMORY port map(address=>addressbus,dataout=>datainbus,datain=>dbusline,readwrite=>readwriteline,clk=>clk,rst=>reset);
-StageCounter: Stage_Count port map(clk=>clk,rst=>reset,stage=>stageline);
+MemoryBlock: MEMORY port map(address=>addressbus,dataout=>datainbus,datain=>dbusline,readwrite=>readwriteline,clk=>clk,rst=>reset,DMA_enable=>sc_enable,DMA_rw=>DMA_mem_rw,DMA_address=>DMA_mem_address_in,DMA_data_in=>DMA_mem_data_in,DMA_data_out=>DMA_mem_data_out);
+StageCounter: Stage_Count port map(clk=>clk,rst=>reset,enable=>sc_enable,stage=>stageline);
 MiddleMuxBlock: mux8 port map(a=>imline,b=>sbusline,c=>datainbus,d=>aluoutbus,s=>regselline,output=>middlemux);
         
 sbus<=sbusline;
