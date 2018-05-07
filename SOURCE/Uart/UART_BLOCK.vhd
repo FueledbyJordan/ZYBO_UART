@@ -13,7 +13,8 @@ entity uart is
         uart_byte_out : out std_logic_vector(7 downto 0);
         tx_pin : out std_logic;
         rx_pin : in std_logic;
-        uart_tx_done : out std_logic
+        uart_tx_done : out std_logic;
+        uart_rx_done : out std_logic
     );
 end uart;
  
@@ -21,7 +22,7 @@ architecture behave of uart is
  
     component uart_tx is
         generic (
-            g_CLKS_PER_BIT : integer := 1085   -- Needs to be set correctly
+            g_CLKS_PER_BIT : integer := 13021   -- Needs to be set correctly
         );
         port (
             i_clk : in std_logic;
@@ -31,11 +32,11 @@ architecture behave of uart is
             o_tx_serial : out std_logic;
             o_tx_done : out std_logic
         );
-    end component;
+    end component uart_tx;
   
-    component uart_rx is
+    component UART_RX is
         generic (
-            g_CLKS_PER_BIT : integer := 1085     -- Needs to be set correctly
+            g_CLKS_PER_BIT : integer := 13021     -- Needs to be set correctly
         );
         port (
             i_Clk       : in  std_logic;
@@ -49,12 +50,16 @@ architecture behave of uart is
   -- Clock Frequency is 125MHz
   -- Want to interface to 115,200 baud UART
   -- 125,000,000 / 115,200 = 1085 Clocks Per Bit.
-constant c_CLKS_PER_BIT : integer := 1085;
+constant c_CLKS_PER_BIT : integer := 13021;
+constant c_CLKS_PER_BIT_16 : integer := 13021;
 
-signal rx_DV : std_logic;
+--signal rx_DV : std_logic;
 --signal uart_byte_in : std_logic_vector(7 downto 0) := X"66";
 --signal uart_byte_out : std_logic_vector(7 downto 0);
+
 --signal uart_write_en : std_logic := '0';
+--signal led : std_logic;
+--signal button : std_logic;
   
 begin
  
@@ -74,16 +79,16 @@ begin
       
     UART_RX_INST : uart_rx
         generic map (
-            g_CLKS_PER_BIT => c_CLKS_PER_BIT
+            g_CLKS_PER_BIT => c_CLKS_PER_BIT_16
         )
         port map (
             i_Clk       => clock,
             i_RX_Serial => rx_pin,
-            o_RX_DV     => rx_DV,
+            o_RX_DV     => uart_rx_done,
             o_RX_Byte   => uart_byte_out
         );
         
---        uart_write_en <= '1' when uart_byte_out = X"72" else '0';    
+        --uart_write_en <= '1' when uart_byte_out = X"72" else '0';   
 --        process(uart_byte_out)
 --        begin
 --            if uart_byte_out = X"72" then

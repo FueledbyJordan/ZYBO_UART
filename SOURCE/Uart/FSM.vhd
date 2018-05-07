@@ -49,7 +49,8 @@ component uart is
         uart_byte_out : out std_logic_vector(7 downto 0);
         tx_pin : out std_logic;
         rx_pin : in std_logic;
-        uart_tx_done : out std_logic
+        uart_tx_done : out std_logic;
+        uart_rx_done : out std_logic
     );
 end component;
 
@@ -70,10 +71,11 @@ signal irline : std_logic_vector(7 downto 0);
 
 -- UART Signals
 signal uart_read_en : std_logic;
-signal uart_write_en : std_logic;
-signal uart_byte_in : std_logic_vector(7 downto 0);
+signal uart_write_en : std_logic := '0';
+signal uart_byte_in : std_logic_vector(7 downto 0) := X"00";
 signal uart_byte_out : std_logic_vector(7 downto 0);
 signal uart_tx_done : std_logic;
+signal uart_rx_done : std_logic;
 
 -- DMA
 signal sc_enable : std_logic;
@@ -83,8 +85,10 @@ signal mem_data_in : std_logic_vector (7 downto 0);
 signal mem_data_out : std_logic_vector(7 downto 0);
 
 -- States
-type state_type is (read, execute, write);
+type state_type is (read, execute, write, done);
 signal state_reg, state_next : state_type := read;
+
+shared variable counter : integer := 0;
 
 begin
   -- Instantiate UART transmitter
@@ -96,7 +100,8 @@ begin
             uart_byte_out => uart_byte_out,
             tx_pin => tx_pin,
             rx_pin => rx_pin,
-            uart_tx_done => uart_tx_done
+            uart_tx_done => uart_tx_done,
+            uart_rx_done => uart_rx_done
         );
 
   -- Instantiate UART transmitter
@@ -127,47 +132,53 @@ begin
     begin
         if reset = '1' then
             state_reg <= read;
-        elsif clock'event and clock = '1' then
+        elsif (clock'event and clock = '1') then
             state_reg <= state_next;
         end if;
     end process;
             
     -- next state logic
     process(state_reg, clock, uart_byte_out)
-    variable counter : integer := 0;
     variable address_temp : std_logic_vector(7 downto 0) := (others => '0');
-    begin    
-        case state_reg is
-            when read =>
-                sc_enable <= '0';
-                mem_rw <= '1';
-                if uart_byte_out = X"72" then
-                    state_next <= execute;
-                else
-                    if uart_byte_out = X"73" then
-                        address_temp := X"40";
+    begin
+        if (rising_edge(clock)) then
+            case state_reg is
+                when read =>
+                    sc_enable <= '0';
+                    mem_rw <= '1';
+                    if uart_byte_out = X"72" then
+                        state_next <= execute;
                     else
-                        mem_address <= address_temp;
-                        mem_data_in <= uart_byte_out;
-                        address_temp := address_temp + 1;            
-                    end if; 
-                end if;
-            when execute =>
-                -- sc_enable <= '1';
-                state_next <= write;
-            when write =>
-                sc_enable <= '0';
-                uart_write_en <= '1';
-                mem_rw <= '0';
-                mem_address <= std_logic_vector(to_unsigned(counter, mem_address'length));
-                uart_byte_in <= X"66";
-                if counter < 256 then
-                    counter := counter + 1;
-                elsif counter = 256 then
-                    counter := 0;
-                    state_next <= read;
-                end if;             
-        end case;            
+                        if uart_byte_out = X"73" then
+                            address_temp := X"40";
+                        elsif uart_rx_done = '1' then
+                            mem_address <= address_temp;
+                            mem_data_in <= uart_byte_out;
+                            address_temp := address_temp + 1;
+                            --std_logic_vector(to_unsigned(((to_integer(unsigned(address_temp)) + 1) MOD 256), address_temp'length));            
+                        end if;
+                        state_next <= read; 
+                    end if;
+                when execute =>
+                    --sc_enable <= '1';
+                    state_next <= write;
+                when write =>
+                    sc_enable <= '0';
+                    uart_write_en <= '1';
+                    mem_rw <= '0';
+                    mem_address <= std_logic_vector(to_unsigned(counter, mem_address'length));
+                    uart_byte_in <= mem_data_out;
+                    if counter < 256 then
+                        counter := counter + 1;
+                        state_next <= write;
+                    else
+                        counter := 0;
+                        state_next <= done;
+                    end if;
+                 when done =>
+                    uart_write_en <= '0';
+            end case;            
+        end if;
     end process;
     
 --    process(clock,uart_byte_out)
