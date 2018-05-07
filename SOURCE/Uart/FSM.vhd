@@ -7,7 +7,9 @@ entity FSM is
     Port(
         clock : in std_logic;
         reset : in std_logic;
-        stage1 : out std_logic
+        rx_pin : in std_logic;
+        tx_pin : out std_logic
+        --stage1 : out std_logic
         --stage2 : out std_logic;
         --stage3 : out std_logic;
         --stage4 : out std_logic
@@ -42,10 +44,11 @@ end component;
 component uart is
     port (
         clock : in std_logic;
-        uart_read_en : in std_logic;
         uart_write_en : in std_logic;
         uart_byte_in : in std_logic_vector(7 downto 0);
         uart_byte_out : out std_logic_vector(7 downto 0);
+        tx_pin : out std_logic;
+        rx_pin : in std_logic;
         uart_tx_done : out std_logic
     );
 end component;
@@ -88,10 +91,11 @@ begin
     UART_INST : uart
         port map (
             clock => clock,
-            uart_read_en => uart_read_en,
             uart_write_en => uart_write_en,
             uart_byte_in => uart_byte_in,
             uart_byte_out => uart_byte_out,
+            tx_pin => tx_pin,
+            rx_pin => rx_pin,
             uart_tx_done => uart_tx_done
         );
 
@@ -131,13 +135,22 @@ begin
     -- next state logic
     process(state_reg, clock, uart_byte_out)
     variable counter : integer := 0;
+    variable address_temp : std_logic_vector(7 downto 0) := (others => '0');
     begin    
         case state_reg is
             when read =>
                 sc_enable <= '0';
                 mem_rw <= '1';
-                if uart_byte_out = X"FF" then
+                if uart_byte_out = X"72" then
                     state_next <= execute;
+                else
+                    if uart_byte_out = X"73" then
+                        address_temp := X"40";
+                    else
+                        mem_address <= address_temp;
+                        mem_data_in <= uart_byte_out;
+                        address_temp := address_temp + 1;            
+                    end if; 
                 end if;
             when execute =>
                 -- sc_enable <= '1';
@@ -147,7 +160,7 @@ begin
                 uart_write_en <= '1';
                 mem_rw <= '0';
                 mem_address <= std_logic_vector(to_unsigned(counter, mem_address'length));
-                uart_byte_in <= mem_data_out;
+                uart_byte_in <= X"66";
                 if counter < 256 then
                     counter := counter + 1;
                 elsif counter = 256 then
@@ -157,17 +170,17 @@ begin
         end case;            
     end process;
     
-    process(uart_byte_out)
-    variable address_temp : std_logic_vector(7 downto 0) := (others => '0'); 
-    begin
-        if uart_byte_out /= X"FF" then
-            if uart_byte_out = X"FE" then
-                address_temp := X"40";
-            else
-                mem_address <= address_temp;
-                mem_data_in <= uart_byte_out;
-                address_temp := address_temp + 1;            
-            end if;
-        end if;
-    end process;
+--    process(clock,uart_byte_out)
+--    variable address_temp : std_logic_vector(7 downto 0) := (others => '0'); 
+--    begin
+--        if uart_byte_out /= X"72" then
+--            if uart_byte_out = X"73" then
+--                address_temp := X"40";
+--            else
+--                mem_address <= address_temp;
+--                mem_data_in <= uart_byte_out;
+--                address_temp := address_temp + 1;            
+--            end if;
+--        end if;
+--    end process;
 end Behavioral;

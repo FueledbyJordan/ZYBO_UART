@@ -8,10 +8,11 @@ use ieee.numeric_std.all;
 entity uart is
     port (
         clock : in std_logic;
-        uart_read_en : in std_logic;
         uart_write_en : in std_logic;
         uart_byte_in : in std_logic_vector(7 downto 0);
         uart_byte_out : out std_logic_vector(7 downto 0);
+        tx_pin : out std_logic;
+        rx_pin : in std_logic;
         uart_tx_done : out std_logic
     );
 end uart;
@@ -30,9 +31,9 @@ architecture behave of uart is
             o_tx_serial : out std_logic;
             o_tx_done : out std_logic
         );
-    end component uart_tx;
+    end component;
   
-    component UART_RX is
+    component uart_rx is
         generic (
             g_CLKS_PER_BIT : integer := 1085     -- Needs to be set correctly
         );
@@ -50,9 +51,10 @@ architecture behave of uart is
   -- 125,000,000 / 115,200 = 1085 Clocks Per Bit.
 constant c_CLKS_PER_BIT : integer := 1085;
 
-signal tx_pin : std_logic; 
-signal rx_pin : std_logic;
 signal rx_DV : std_logic;
+--signal uart_byte_in : std_logic_vector(7 downto 0) := X"66";
+--signal uart_byte_out : std_logic_vector(7 downto 0);
+--signal uart_write_en : std_logic := '0';
   
 begin
  
@@ -79,5 +81,16 @@ begin
             i_RX_Serial => rx_pin,
             o_RX_DV     => rx_DV,
             o_RX_Byte   => uart_byte_out
-        ); 
+        );
+        
+--        uart_write_en <= '1' when uart_byte_out = X"72" else '0';    
+--        process(uart_byte_out)
+--        begin
+--            if uart_byte_out = X"72" then
+--                temp_enable := '1';
+--            else
+--                temp_enable := '0';
+--            end if;
+--        end process; 
+       
 end behave;
