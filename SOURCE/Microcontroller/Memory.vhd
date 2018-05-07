@@ -24,24 +24,6 @@ ARCHITECTURE BEV OF MEMORY IS
     BEGIN
         PROCESS(ADDRESS, DATAIN, readwrite, clk, rst, DMA_enable, DMA_data_in, DMA_address)
         BEGIN        
-MEMORY(0) := "00000000";
-        MEMORY(1) := "11100100";
-        MEMORY(2) := "00000000";
-        MEMORY(3) := "11100000";
-        MEMORY(4) := "10000000";
-        MEMORY(5) := "01001000";
-        MEMORY(6) := "10001000";
-        MEMORY(7) := "00001110";
-        MEMORY(8) := "00100110";
-        MEMORY(9) := "11101100";
-        MEMORY(10) := "00000001";
-        MEMORY(11) := "00100011";
-        MEMORY(12) := "11111111";
-        MEMORY(13) := "00000101";
-        MEMORY(14) := "11010100";
-        MEMORY(15) := "01000000";
-        MEMORY(16) := "11111111";
-        
             ADDR := CONV_INTEGER(DMA_address);
             IF(rising_edge(clk)) THEN
                 IF(rst='1') THEN

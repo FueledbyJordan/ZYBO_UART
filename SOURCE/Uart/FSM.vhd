@@ -128,7 +128,7 @@ begin
         );
     
     -- state change
-    process(clock,reset)
+    process(clock,reset,state_reg)
     begin
         if reset = '1' then
             state_reg <= read;
@@ -138,8 +138,9 @@ begin
     end process;
             
     -- next state logic
-    process(state_reg, clock, uart_byte_out)
+    process(state_reg, clock, uart_byte_out, uart_tx_done, uart_rx_done)
     variable address_temp : std_logic_vector(7 downto 0) := (others => '0');
+    variable toggle : std_logic := '1';
     begin
         if (rising_edge(clock)) then
             case state_reg is
@@ -155,8 +156,8 @@ begin
                             mem_address <= address_temp;
                             mem_data_in <= uart_byte_out;
                             address_temp := address_temp + 1;
-                            --std_logic_vector(to_unsigned(((to_integer(unsigned(address_temp)) + 1) MOD 256), address_temp'length));            
-                        end if;
+                    --std_logic_vector(to_unsigned(((to_integer(unsigned(address_temp)) + 1) MOD 256), address_temp'length));            
+                            end if;
                         state_next <= read; 
                     end if;
                 when execute =>
@@ -168,12 +169,17 @@ begin
                     mem_rw <= '0';
                     mem_address <= std_logic_vector(to_unsigned(counter, mem_address'length));
                     uart_byte_in <= mem_data_out;
-                    if counter < 256 then
-                        counter := counter + 1;
-                        state_next <= write;
-                    else
-                        counter := 0;
-                        state_next <= done;
+                    if uart_tx_done = '1' then
+                        if toggle = '1' then
+                            if counter < 256 then
+                                state_next <= write;
+                                counter := counter + 1;
+                            else
+                                state_next <= done;
+                                counter := 0;
+                            end if;
+                        end if;
+                        toggle := not toggle;
                     end if;
                  when done =>
                     uart_write_en <= '0';
