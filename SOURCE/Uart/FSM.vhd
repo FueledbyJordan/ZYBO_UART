@@ -26,7 +26,7 @@ component Microcontroller is
         dbus : out std_logic_vector(7 downto 0);
         aluout : out std_logic_vector(7 downto 0);
         immed : out std_logic_vector(7 downto 0);
-        aluop : out std_logic_vector(1 downto 0); 
+        aluop : out std_logic_vector(1 downto 0);
         negative : out std_logic;
         zero : out std_logic;
         pcsel : out std_logic;
@@ -122,7 +122,7 @@ begin
             addressout => address,
             irlineout => irline
         );
-    
+
     -- state change
     process(clock,reset,state_reg)
     begin
@@ -132,7 +132,7 @@ begin
             state_reg <= state_next;
         end if;
     end process;
-            
+
     -- next state logic
     process(state_reg, clock, uart_byte_out, uart_tx_done, uart_rx_done)
     variable address_temp : std_logic_vector(7 downto 0) := (others => '0');
@@ -151,13 +151,13 @@ begin
                             if uart_byte_out = X"73" then
                                 address_temp := X"40";
                             elsif uart_byte_out = X"72" then
-                                
+
                             else
                                 mem_data_in <= uart_byte_out;
-                                address_temp := std_logic_vector(to_unsigned(((to_integer(unsigned(address_temp)) + 1) MOD 256), address_temp'length));            
+                                address_temp := std_logic_vector(to_unsigned(((to_integer(unsigned(address_temp)) + 1) MOD 256), address_temp'length));
                             end if;
                         end if;
-                        state_next <= read; 
+                        state_next <= read;
                     end if;
                 when execute =>
                     --sc_enable <= '1';
@@ -170,7 +170,7 @@ begin
                     uart_byte_in <= mem_data_out;
                     if uart_tx_done = '1' then
                         if toggle = '1' then
-                            if counter < 256 then
+                            if counter < 256 - 1 then
                                 state_next <= write;
                                 counter := counter + 1;
                             else
@@ -182,7 +182,7 @@ begin
                     end if;
                  when done =>
                     uart_write_en <= '0';
-            end case;            
+            end case;
         end if;
     end process;
 end Behavioral;
