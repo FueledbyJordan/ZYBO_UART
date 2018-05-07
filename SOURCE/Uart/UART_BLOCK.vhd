@@ -1,6 +1,23 @@
-----------------------------------------------------------------------
--- File Downloaded from http://www.nandland.com
-----------------------------------------------------------------------
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 03/19/2018 12:34:47 PM
+-- Design Name: 
+-- Module Name: UART_BLOCK - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.all;
@@ -48,7 +65,6 @@ architecture behave of uart is
  
    
   -- Clock Frequency is 125MHz
-  -- Want to interface to 115,200 baud UART
   -- 125,000,000 / 115,200 = 1085 Clocks Per Bit.
 constant c_CLKS_PER_BIT : integer := 13021;
 constant c_CLKS_PER_BIT_16 : integer := 13021;
@@ -87,15 +103,5 @@ begin
             o_RX_DV     => uart_rx_done,
             o_RX_Byte   => uart_byte_out
         );
-        
-        --uart_write_en <= '1' when uart_byte_out = X"72" else '0';   
---        process(uart_byte_out)
---        begin
---            if uart_byte_out = X"72" then
---                temp_enable := '1';
---            else
---                temp_enable := '0';
---            end if;
---        end process; 
-       
+              
 end behave;

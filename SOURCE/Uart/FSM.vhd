@@ -9,10 +9,6 @@ entity FSM is
         reset : in std_logic;
         rx_pin : in std_logic;
         tx_pin : out std_logic
-        --stage1 : out std_logic
-        --stage2 : out std_logic;
-        --stage3 : out std_logic;
-        --stage4 : out std_logic
     );
 end entity;
 
@@ -150,14 +146,17 @@ begin
                     if uart_byte_out = X"72" then
                         state_next <= execute;
                     else
-                        if uart_byte_out = X"73" then
-                            address_temp := X"40";
-                        elsif uart_rx_done = '1' then
+                        if uart_rx_done = '1' then
                             mem_address <= address_temp;
-                            mem_data_in <= uart_byte_out;
-                            address_temp := address_temp + 1;
-                    --std_logic_vector(to_unsigned(((to_integer(unsigned(address_temp)) + 1) MOD 256), address_temp'length));            
+                            if uart_byte_out = X"73" then
+                                address_temp := X"40";
+                            elsif uart_byte_out = X"72" then
+                                
+                            else
+                                mem_data_in <= uart_byte_out;
+                                address_temp := std_logic_vector(to_unsigned(((to_integer(unsigned(address_temp)) + 1) MOD 256), address_temp'length));            
                             end if;
+                        end if;
                         state_next <= read; 
                     end if;
                 when execute =>
@@ -186,18 +185,4 @@ begin
             end case;            
         end if;
     end process;
-    
---    process(clock,uart_byte_out)
---    variable address_temp : std_logic_vector(7 downto 0) := (others => '0'); 
---    begin
---        if uart_byte_out /= X"72" then
---            if uart_byte_out = X"73" then
---                address_temp := X"40";
---            else
---                mem_address <= address_temp;
---                mem_data_in <= uart_byte_out;
---                address_temp := address_temp + 1;            
---            end if;
---        end if;
---    end process;
 end Behavioral;

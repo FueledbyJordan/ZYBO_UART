@@ -1,23 +1,30 @@
-----------------------------------------------------------------------
--- File Downloaded from http://www.nandland.com
-----------------------------------------------------------------------
--- This file contains the UART Receiver.  This receiver is able to
--- receive 8 bits of serial data, one start bit, one stop bit,
--- and no parity bit.  When receive is complete o_rx_dv will be
--- driven high for one clock cycle.
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
 -- 
--- Set Generic g_CLKS_PER_BIT as follows:
--- g_CLKS_PER_BIT = (Frequency of i_Clk)/(Frequency of UART)
--- Example: 10 MHz Clock, 115200 baud UART
--- (10000000)/(115200) = 87
---
+-- Create Date: 03/19/2018 12:34:47 PM
+-- Design Name: 
+-- Module Name: UART_RX - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.all;
  
 entity UART_RX is
   generic (
-    g_CLKS_PER_BIT : integer := 1085     -- Needs to be set correctly
+    g_CLKS_PER_BIT : integer := 1085  
     );
   port (
     i_Clk       : in  std_logic;
@@ -44,9 +51,6 @@ architecture rtl of UART_RX is
    
 begin
  
-  -- Purpose: Double-register the incoming data.
-  -- This allows it to be used in the UART RX Clock Domain.
-  -- (It removes problems caused by metastabiliy)
   p_SAMPLE : process (i_Clk)
   begin
     if rising_edge(i_Clk) then
@@ -55,8 +59,6 @@ begin
     end if;
   end process p_SAMPLE;
    
- 
-  -- Purpose: Control RX state machine
   p_UART_RX : process (i_Clk)
   begin
     if rising_edge(i_Clk) then
@@ -74,12 +76,10 @@ begin
             r_SM_Main <= s_Idle;
           end if;
  
-           
-        -- Check middle of start bit to make sure it's still low
         when s_RX_Start_Bit =>
           if r_Clk_Count = (g_CLKS_PER_BIT-1)/2 then
             if r_RX_Data = '0' then
-              r_Clk_Count <= 0;  -- reset counter since we found the middle
+              r_Clk_Count <= 0; 
               r_SM_Main   <= s_RX_Data_Bits;
             else
               r_SM_Main   <= s_Idle;
@@ -88,9 +88,7 @@ begin
             r_Clk_Count <= r_Clk_Count + 1;
             r_SM_Main   <= s_RX_Start_Bit;
           end if;
- 
            
-        -- Wait g_CLKS_PER_BIT-1 clock cycles to sample serial data
         when s_RX_Data_Bits =>
           if r_Clk_Count < g_CLKS_PER_BIT-1 then
             r_Clk_Count <= r_Clk_Count + 1;
@@ -99,7 +97,6 @@ begin
             r_Clk_Count            <= 0;
             r_RX_Byte(r_Bit_Index) <= r_RX_Data;
              
-            -- Check if we have sent out all bits
             if r_Bit_Index < 7 then
               r_Bit_Index <= r_Bit_Index + 1;
               r_SM_Main   <= s_RX_Data_Bits;
@@ -109,10 +106,7 @@ begin
             end if;
           end if;
  
- 
-        -- Receive Stop bit.  Stop bit = 1
-        when s_RX_Stop_Bit =>
-          -- Wait g_CLKS_PER_BIT-1 clock cycles for Stop bit to finish
+         when s_RX_Stop_Bit =>
           if r_Clk_Count < g_CLKS_PER_BIT-1 then
             r_Clk_Count <= r_Clk_Count + 1;
             r_SM_Main   <= s_RX_Stop_Bit;
@@ -122,12 +116,9 @@ begin
             r_SM_Main   <= s_Cleanup;
           end if;
  
-                   
-        -- Stay here 1 clock
         when s_Cleanup =>
           r_SM_Main <= s_Idle;
           r_RX_DV   <= '0';
- 
              
         when others =>
           r_SM_Main <= s_Idle;
