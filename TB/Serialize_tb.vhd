@@ -22,3 +22,23 @@ begin
     parallel_in <= "11111111" after T;
 
 end arch;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
